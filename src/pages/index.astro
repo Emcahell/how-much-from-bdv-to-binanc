@@ -1,11 +1,36 @@
 ---
-import Welcome from '../components/Welcome.astro';
 import Layout from '../layouts/Layout.astro';
-
-// Welcome to Astro! Wondering what to do next? Check out the Astro documentation at https://docs.astro.build
-// Don't want to use any of this? Delete everything in this file, the `assets`, `components`, and `layouts` directories, and start fresh.
+import CalculatorApp from '../components/CalculatorApp';
+import RateManager from '../components/RateManager';
 ---
 
-<Layout>
-	<Welcome />
+<Layout title="BDV → Binance | Calculadora de Divisas">
+	<main class="min-h-screen flex flex-col">
+		<!-- Header -->
+		<header class="border-b border-[#2b3139]">
+			<div class="max-w-3xl mx-auto px-4 py-5 flex items-center justify-between">
+				<h1 class="text-lg font-semibold text-[#eaecef]">
+					BDV → Binance
+				</h1>
+				<RateManager client:load />
+			</div>
+		</header>
+
+		<!-- Calculator -->
+		<section class="flex-1 py-8 px-4">
+			<CalculatorApp client:load />
+		</section>
+
+		<!-- Footer -->
+		<footer class="border-t border-[#2b3139] py-4 px-4">
+			<div class="max-w-3xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-[#5e6673]">
+				<span>
+						Tasas referenciales. No constituye asesoría financiera.
+					</span>
+				<span>
+						BDV comisión: 2.5% · Binance comisión: 3.6%
+					</span>
+			</div>
+		</footer>
+	</main>
 </Layout>

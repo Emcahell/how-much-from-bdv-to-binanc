@@ -1,0 +1,41 @@
+@import "tailwindcss";
+
+:root {
+  --binance-yellow: #f0b90b;
+  --binance-yellow-dim: #c99400;
+  --binance-bg-primary: #0b0e11;
+  --binance-bg-secondary: #1e2329;
+  --binance-bg-tertiary: #2b3139;
+  --binance-bg-card: #181a20;
+  --binance-border: #2b3139;
+  --binance-text-primary: #eaecef;
+  --binance-text-secondary: #848e9c;
+  --binance-text-muted: #5e6673;
+  --binance-green: #0ecb81;
+  --binance-red: #f6465d;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  min-height: 100vh;
+  background-color: var(--binance-bg-primary);
+  color: var(--binance-text-primary);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+input[type="number"] {
+  -moz-appearance: textfield;
+}
