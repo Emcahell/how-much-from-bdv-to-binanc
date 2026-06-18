@@ -2,6 +2,7 @@
 import Layout from '../layouts/Layout.astro';
 import CalculatorApp from '../components/CalculatorApp';
 import RateManager from '../components/RateManager';
+import InstallButton from '../components/InstallButton';
 ---
 
 <Layout title="BDV → Binance | Calculadora de Divisas">
@@ -13,6 +14,7 @@ import RateManager from '../components/RateManager';
 					BDV → Binance
 				</h1>
 				<RateManager client:load />
+				<InstallButton client:load />
 			</div>
 		</header>
 

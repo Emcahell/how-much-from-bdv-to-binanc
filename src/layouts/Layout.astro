@@ -16,9 +16,19 @@ const { title = 'BDV → Binance | Calculadora de Divisas' } = Astro.props;
 		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 		<meta name="generator" content={Astro.generator} />
 		<meta name="description" content="Calcula cuántos dólares obtendrás de Bolívares al pasar por BDV y Binance, incluyendo comisiones." />
+		<link rel="manifest" href="/manifest.json" />
+		<meta name="theme-color" content="#0b0e11" />
+		<meta name="apple-mobile-web-app-capable" content="yes" />
+		<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+		<link rel="apple-touch-icon" href="/icons/img-192x192.png" />
 		<title>{title}</title>
 	</head>
 	<body class="bg-[#0b0e11] text-[#eaecef] min-h-screen">
 		<slot />
+		<script is:inline>
+			if ("serviceWorker" in navigator) {
+				navigator.serviceWorker.register("/sw.js");
+			}
+		</script>
 	</body>
 </html>
