@@ -1,11 +1,16 @@
 /** Comisión del BDV al comprar divisas (VES → USD) — 0.5% */
 export const BDV_PURCHASE_RATE = 0.005;
 
-/** Comisión del BDV al gastar divisas (USD → Binance) — 2.5% */
-export const BDV_SPEND_RATE = 0.025;
+/** Comisión del BDV al gastar divisas — variable por tipo de tarjeta */
+export const BDV_SPEND_RATES = {
+  virtual: 0.025, // 2.5% — tarjeta virtual
+  fisica: 0.015,  // 1.5% — tarjeta física
+} as const;
 
 /** Comisión de Binance al recibir USD del BDV — 3.6% */
 export const BINANCE_COMMISSION_RATE = 0.036;
+
+export type CardType = "virtual" | "fisica";
 
 /** Etiquetas descriptivas para cada paso del flujo */
 export const LABELS = {

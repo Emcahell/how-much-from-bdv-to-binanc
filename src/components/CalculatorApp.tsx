@@ -1,21 +1,29 @@
 import { useState, useEffect } from "react";
 import Calculator from "./Calculator";
-import { getSavedRate, RATE_CHANGED_EVENT } from "../lib/storage";
+import { getSavedRate, getSavedCardType, RATE_CHANGED_EVENT, CARD_TYPE_CHANGED_EVENT, type CardType } from "../lib/storage";
 
 export default function CalculatorApp() {
   const [rate, setRate] = useState<number | null>(null);
+  const [cardType, setCardType] = useState<CardType>("virtual");
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     setRate(getSavedRate());
+    setCardType(getSavedCardType());
     setLoading(false);
 
-    const handler = (e: Event) => {
-      const customEvent = e as CustomEvent<number>;
-      setRate(customEvent.detail);
+    const rateHandler = (e: Event) => {
+      setRate((e as CustomEvent<number>).detail);
     };
-    window.addEventListener(RATE_CHANGED_EVENT, handler);
-    return () => window.removeEventListener(RATE_CHANGED_EVENT, handler);
+    const cardHandler = (e: Event) => {
+      setCardType((e as CustomEvent<CardType>).detail);
+    };
+    window.addEventListener(RATE_CHANGED_EVENT, rateHandler);
+    window.addEventListener(CARD_TYPE_CHANGED_EVENT, cardHandler);
+    return () => {
+      window.removeEventListener(RATE_CHANGED_EVENT, rateHandler);
+      window.removeEventListener(CARD_TYPE_CHANGED_EVENT, cardHandler);
+    };
   }, []);
 
   if (loading) {
@@ -29,5 +37,5 @@ export default function CalculatorApp() {
     );
   }
 
-  return <Calculator rate={rate} />;
+  return <Calculator rate={rate} cardType={cardType} />;
 }

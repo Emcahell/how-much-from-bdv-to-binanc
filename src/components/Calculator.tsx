@@ -10,12 +10,14 @@ import {
 } from "lucide-react";
 import {
   BDV_PURCHASE_RATE,
-  BDV_SPEND_RATE,
+  BDV_SPEND_RATES,
   BINANCE_COMMISSION_RATE,
   LABELS,
   formatInput,
   formatDisplay,
+  type CardType,
 } from "../config/calculator";
+import { saveCardType, CARD_TYPE_CHANGED_EVENT } from "../lib/storage";
 
 /** Resultados del cálculo */
 interface CalcResult {
@@ -26,17 +28,18 @@ interface CalcResult {
   usdAfterBinance: number;
 }
 
-function calculate(ves: number, rate: number): CalcResult {
+function calculate(ves: number, rate: number, cardType: CardType): CalcResult {
   const usd = ves / rate;
+  const spendRate = BDV_SPEND_RATES[cardType];
   const usdAfterPurchase = usd * (1 - BDV_PURCHASE_RATE);
-  const usdAfterSpend = usdAfterPurchase * (1 - BDV_SPEND_RATE);
+  const usdAfterSpend = usdAfterPurchase * (1 - spendRate);
   const usdAfterBinance = usdAfterSpend * (1 - BINANCE_COMMISSION_RATE);
   return { ves, usd, usdAfterPurchase, usdAfterSpend, usdAfterBinance };
 }
 
-function calculateFromUsd(usd: number, rate: number): CalcResult {
+function calculateFromUsd(usd: number, rate: number, cardType: CardType): CalcResult {
   const ves = usd * rate;
-  return calculate(ves, rate);
+  return calculate(ves, rate, cardType);
 }
 
 /** Limpia un string de entrada: solo dígitos y un punto decimal */
@@ -61,9 +64,10 @@ function formatWithCommas(numStr: string): string {
 
 interface CalculatorProps {
   rate: number | null;
+  cardType: CardType;
 }
 
-export default function Calculator({ rate }: CalculatorProps) {
+export default function Calculator({ rate, cardType }: CalculatorProps) {
   const [ves, setVes] = useState("");
   const [usd, setUsd] = useState("");
   const [lastEdited, setLastEdited] = useState<"ves" | "usd" | null>(null);
@@ -82,19 +86,19 @@ export default function Calculator({ rate }: CalculatorProps) {
     const usdNum = parseFloat(usd) || 0;
 
     if (lastEdited === "ves") {
-      const r = calculate(vesNum, rate);
+      const r = calculate(vesNum, rate, cardType);
       setResult(r);
       setUsd(formatInput(r.usd));
     } else if (lastEdited === "usd") {
-      const r = calculateFromUsd(usdNum, rate);
+      const r = calculateFromUsd(usdNum, rate, cardType);
       setResult(r);
       setVes(formatInput(r.ves));
     } else {
       if (vesNum > 0) {
-        setResult(calculate(vesNum, rate));
+        setResult(calculate(vesNum, rate, cardType));
       }
     }
-  }, [ves, usd, lastEdited, rate]);
+  }, [ves, usd, lastEdited, rate, cardType]);
 
   useEffect(() => {
     recalc();
@@ -124,6 +128,14 @@ export default function Calculator({ rate }: CalculatorProps) {
     requestAnimationFrame(() => {
       e.target.setSelectionRange(newCursorPos, newCursorPos);
     });
+  };
+
+  const spendRate = BDV_SPEND_RATES[cardType];
+
+  const handleCardTypeToggle = () => {
+    const next: CardType = cardType === "virtual" ? "fisica" : "virtual";
+    saveCardType(next);
+    window.dispatchEvent(new CustomEvent(CARD_TYPE_CHANGED_EVENT, { detail: next }));
   };
 
   /* ── Sin tasa configurada ──────────────────────────────── */
@@ -238,15 +250,25 @@ export default function Calculator({ rate }: CalculatorProps) {
             isDiscount
           />
 
-          {/* Step 3: Comisión gasto divisas 2.5% */}
+          {/* Step 3: Comisión gasto divisas — selector de tarjeta */}
           <FlowStep
             icon={<CreditCard className="w-5 h-5 text-[#f0b90b]" />}
             label={LABELS.bdvSpendCommission}
             from={`${formatDisplay(result.usdAfterPurchase)} USD`}
             to={`${formatDisplay(result.usdAfterSpend)} USD`}
-            detail={`-${(BDV_SPEND_RATE * 100).toFixed(1)}% por transferencia`}
+            detail={`-${(spendRate * 100).toFixed(1)}% por transferencia`}
             accent="#f0b90b"
             isDiscount
+            trailing={
+              <button
+                onClick={handleCardTypeToggle}
+                className="mt-1.5 flex items-center gap-1.5 rounded-md bg-[#2b3139] px-2 py-1 text-[10px] text-[#848e9c] hover:border-[#f0b90b] border border-transparent transition-colors cursor-pointer select-none"
+              >
+                <span className={cardType === "virtual" ? "text-[#f0b90b]" : ""}>Virtual</span>
+                <span className="text-[#5e6673]">|</span>
+                <span className={cardType === "fisica" ? "text-[#f0b90b]" : ""}>Física</span>
+              </button>
+            }
           />
 
           {/* Step 4: Comisión Binance 3.6% */}
@@ -300,6 +322,7 @@ interface FlowStepProps {
   detail: string;
   accent: string;
   isDiscount?: boolean;
+  trailing?: ReactNode;
 }
 
 function FlowStep({
@@ -310,6 +333,7 @@ function FlowStep({
   detail,
   accent,
   isDiscount = false,
+  trailing,
 }: FlowStepProps) {
   return (
     <div className="flex items-center gap-3 bg-[#1e2329] rounded-lg p-3">
@@ -331,6 +355,7 @@ function FlowStep({
             {to}
           </span>
         </div>
+        {trailing && <div>{trailing}</div>}
       </div>
     </div>
   );

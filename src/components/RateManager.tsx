@@ -26,9 +26,33 @@ export default function RateManager() {
     }
   }, [showModal]);
 
+  /** Convierte dígitos crudos a número (últimos 2 dígitos = decimales) */
+  const rawToNumber = (raw: string): number => {
+    if (!raw) return 0;
+    const num = parseInt(raw, 10);
+    return isNaN(num) ? 0 : num / 100;
+  };
+
+  /** Convierte un número a dígitos crudos (×100, sin punto) */
+  const numberToRaw = (num: number): string => {
+    return String(Math.round(num * 100));
+  };
+
+  /** Formatea dígitos crudos para display: inserta punto 2 posiciones desde la derecha */
+  const formatRaw = (raw: string): string => {
+    if (!raw) return "";
+    // Pad con ceros a la izquierda hasta tener al menos 3 dígitos (ej: "5" → "005" → "0.05")
+    const padded = raw.padStart(3, "0");
+    const intPart = padded.slice(0, -2);
+    const decPart = padded.slice(-2);
+    // Agregar comas a la parte entera
+    const withCommas = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    return withCommas + "." + decPart;
+  };
+
   const handleSave = useCallback(() => {
-    const num = parseFloat(inputValue);
-    if (isNaN(num) || num <= 0) return;
+    const num = rawToNumber(inputValue);
+    if (num <= 0) return;
     saveRate(num);
     setCurrentRate(num);
     setShowModal(false);
@@ -45,7 +69,8 @@ export default function RateManager() {
       {/* Header button */}
       <button
         onClick={() => {
-          if (currentRate !== null) setInputValue(String(currentRate));
+          if (currentRate !== null) setInputValue(numberToRaw(currentRate));
+          else setInputValue("");
           setShowModal(true);
         }}
         className="flex items-center gap-2 rounded-lg bg-[#181a20] border border-[#2b3139] px-3 py-1.5 text-sm hover:border-[#f0b90b] transition-colors cursor-pointer"
@@ -105,11 +130,17 @@ export default function RateManager() {
               <input
                 ref={inputRef}
                 type="text"
-                inputMode="decimal"
-                value={inputValue}
-                onChange={(e) => setInputValue(e.target.value.replace(/[^\d.]/g, ""))}
+                inputMode="numeric"
+                value={formatRaw(inputValue)}
+                onChange={(e) => {
+                  // Solo aceptar dígitos, ignorar puntos y comas
+                  const digits = e.target.value.replace(/\D/g, "");
+                  // Limitar a 10 dígitos (máx ~9,999,999.99)
+                  if (digits.length > 10) return;
+                  setInputValue(digits);
+                }}
                 onKeyDown={handleKeyDown}
-                placeholder="Ej: 615"
+                placeholder="0.00"
                 className="w-full bg-[#2b3139] border border-[#2b3139] rounded-lg px-3 py-2.5 text-lg text-[#eaecef] placeholder-[#5e6673] focus:border-[#f0b90b] focus:outline-none transition-colors"
               />
             </div>
@@ -117,7 +148,7 @@ export default function RateManager() {
             {/* Save button */}
             <button
               onClick={handleSave}
-              disabled={!inputValue || parseFloat(inputValue) <= 0}
+              disabled={!inputValue || rawToNumber(inputValue) <= 0}
               className="w-full py-2.5 rounded-lg font-semibold text-sm transition-colors disabled:opacity-40 disabled:cursor-not-allowed bg-[#f0b90b] text-[#0b0e11] hover:bg-[#c99400]"
             >
               {currentRate !== null ? "Actualizar tasa" : "Guardar tasa"}
