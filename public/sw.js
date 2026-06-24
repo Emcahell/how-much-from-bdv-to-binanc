@@ -1,4 +1,4 @@
-const CACHE_NAME = "bdv-binance-v1";
+const CACHE_NAME = "bdv-binance-v2";
 const STATIC_ASSETS = [
   "/",
   "/index.html",
@@ -29,18 +29,31 @@ self.addEventListener("activate", (event) => {
   self.clients.claim();
 });
 
-// Fetch: cache-first, then network, then offline fallback
+// Fetch: network-first for HTML (keeps PWA updated), cache-first for assets
 self.addEventListener("fetch", (event) => {
-  // Only handle same-origin GET requests
   if (event.request.method !== "GET") return;
 
+  // HTML / navigation: network-first so updates are always picked up
+  if (event.request.mode === "navigate") {
+    event.respondWith(
+      fetch(event.request)
+        .then((response) => {
+          const clone = response.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
+          return response;
+        })
+        .catch(() => caches.match(event.request).then((cached) => cached || caches.match("/")))
+    );
+    return;
+  }
+
+  // Static assets: cache-first
   event.respondWith(
     caches.match(event.request).then((cached) => {
       if (cached) return cached;
 
       return fetch(event.request)
         .then((response) => {
-          // Cache successful responses
           if (response.ok) {
             const clone = response.clone();
             caches.open(CACHE_NAME).then((cache) => {
@@ -49,13 +62,7 @@ self.addEventListener("fetch", (event) => {
           }
           return response;
         })
-        .catch(() => {
-          // Offline fallback for navigation requests
-          if (event.request.mode === "navigate") {
-            return caches.match("/");
-          }
-          return new Response("Offline", { status: 503 });
-        });
+        .catch(() => new Response("Offline", { status: 503 }));
     })
   );
 });

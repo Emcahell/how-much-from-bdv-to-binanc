@@ -7,8 +7,8 @@ export const BDV_SPEND_RATES = {
   fisica: 0.015,  // 1.5% — tarjeta física
 } as const;
 
-/** Comisión de Binance al recibir USD del BDV — 3.6% */
-export const BINANCE_COMMISSION_RATE = 0.036;
+/** Comisión de Binance al recibir USD del BDV — 4.1% */
+export const BINANCE_COMMISSION_RATE = 0.041;
 
 export type CardType = "virtual" | "fisica";
 
